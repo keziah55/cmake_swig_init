@@ -85,8 +85,12 @@ class CMakeGenerator:
 
     def generate(self):
         """
-        Generate CMakeLists.txt files and numpy.i, if requested.
+        Generate CMakeLists.txt files and SWIG interface files, if requested.
         """
+        
+        self._generate_top_level_cmakelists()
+        self._generate_src_cmakelists()
+        self._generate_swig_cmakelists()
 
         if self._generate_interface_file:
             self._generate_interface()
@@ -101,7 +105,7 @@ class CMakeGenerator:
 
         path_to_header = self._src_dir.joinpath(f"{self._project_name}.h")
 
-        text = [f"%module {self._project_name}\n"]
+        text = [f"%module {self._project_name}", ""]
         if self._use_numpy:
             numpy_text = [
                 "%{",
@@ -112,6 +116,7 @@ class CMakeGenerator:
                 "%init %{",
                 "import_array();",
                 "%}",
+                ""
             ]
 
             text += numpy_text
@@ -150,14 +155,16 @@ class CMakeGenerator:
         with open(out_file, "w") as fileobj:
             fileobj.write(text)
 
-    def _generate_top_level_cmake(self):
+    def _generate_top_level_cmakelists(self):
         source_subdir = self._src_dir.relative_to(self._top_level_dir)
         text = [
             f"cmake_minimum_required(VERSION {self._min_cmake_version})",
             f"project({self._project_name})",
+            "",
             f"set(CMAKE_CXX_STANDARD {self._cxx_std})",
             f'set(CMAKE_CXX_FLAGS "${{CMAKE_CXX_FLAGS}}{self._cxx_flags}")',
             "set(CMAKE_POSITION_INDEPENDENT_CODE ON)",
+            ""
             f"add_subdirectory({source_subdir})",
         ]
 
@@ -168,10 +175,10 @@ class CMakeGenerator:
         with open(out_file, "w") as fileobj:
             fileobj.write(text)
 
-    def _generate_src_cmake(self):
+    def _generate_src_cmakelists(self):
         pass
 
-    def _generate_swig_cmake(self):
+    def _generate_swig_cmakelists(self):
         pass
 
     @staticmethod
